@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=yes,viewport-fit=cover">
+    <title>Tomo.com</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="bg-white">
+<div class="search-overlay" id="searchOverlay"></div>
+<div class="zoom-overlay" id="headerZoomOverlay"></div>
+<div class="more-counter" id="moreCounter">1/36</div>
+<div class="section-label" id="sectionLabel"></div>
+<div class="more-nav-arrow" id="morePrevArrow" style="left:calc(50% - 160px)" onclick="event.stopPropagation();navigateZoom(-1)"><svg viewBox="0 0 24 24"><path d="M15.41 16.59L10.83 12l4.58-4.59L14 6l-6 6 6 6z"/></svg></div>
+<div class="more-nav-arrow" id="moreNextArrow" style="right:calc(50% - 160px)" onclick="event.stopPropagation();navigateZoom(1)"><svg viewBox="0 0 24 24"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6z"/></svg></div>
+<div class="zoomed-details" id="zoomedDetails"><div class="zm-title" id="zmTitle"></div><div class="zm-meta" id="zmMeta"></div><div class="zm-actions"><span onclick="event.stopPropagation();zmAction('ratings')">⭐ My Ratings.</span><span onclick="event.stopPropagation();zmAction('watchlater')">📋 Watch Later</span></div></div>
+<button class="zoom-close-btn" id="btnClosePosterZoom" style="display:none" onclick="event.stopPropagation();closeMoreZoom()">✕</button>
+<div class="options-dropdown" id="optionsDropdown">
+    <button class="options-dropdown-close" onclick="closeOptionsDropdown()">✕</button>
+    <div class="options-dropdown-item" onclick="openTrashModal()"><span class="item-icon">🗑️</span><span>Trash</span><span class="item-badge" id="trashCount">0</span></div>
+    <div class="options-dropdown-item" onclick="openLoginModal()"><span class="item-icon">🔑</span><span id="loginMenuItem">Login</span></div>
+    <div class="options-dropdown-item disabled"><span class="item-icon">⚙️</span><span>Settings</span></div>
+</div>
+<div class="login-modal-overlay" id="loginModalOverlay">
+    <div class="login-modal" style="position:relative">
+        <button class="login-modal-close" onclick="closeLoginModal()">✕</button>
+        <h3>🔑 Sign In / Sign Up</h3>
+        <div class="input-field-group">
+            <label class="input-field-label" for="loginUsername">Username</label>
+            <input type="text" class="login-input" id="loginUsername" placeholder="Enter your username" autocomplete="username">
+        </div>
+        <div class="input-field-group">
+            <label class="input-field-label" for="loginPassword">Password</label>
+            <div class="password-wrapper">
+                <input type="password" class="login-input" id="loginPassword" placeholder="Enter your password" autocomplete="current-password">
+                <button type="button" class="password-toggle" onclick="togglePassword('loginPassword',this)">👁️</button>
+            </div>
+        </div>
+        <button class="login-btn" onclick="doLogin()">Sign In</button>
+        <div class="login-demo">💡 Demo: <b>user</b> / <b>123</b></div>
+    </div>
+</div>
+<div class="account-options-overlay" id="accountOptionsOverlay">
+    <div class="account-options-modal">
+        <button class="acc-close" onclick="closeAccountOptions()">✕</button>
+        <div class="acc-welcome">You are logged in as</div>
+        <div class="acc-username" id="accUsernameDisplay"></div>
+        <div class="acc-options-row">
+            <button class="acc-option-btn change-account" onclick="openChangeCredentials()">🔄 Change Account</button>
+            <button class="acc-option-btn delete-account" onclick="openDeleteWarning()">🗑️ Delete</button>
+        </div>
+        <button class="acc-option-btn sign-out-btn" onclick="performSignOut()">🚪 Sign Out</button>
+    </div>
+</div>
+<div class="change-credentials-overlay" id="changeCredentialsOverlay">
+    <div class="change-credentials-modal" style="position:relative">
+        <button class="cc-close" onclick="closeChangeCredentials()">✕</button>
+        <div class="cc-title">Change Account</div>
+        <div class="cc-subtitle">Leave blank to keep current value</div>
+        <div class="cc-current-user">👤 Current Username: <b id="ccCurrentUsername">—</b></div>
+        <div class="input-field-group">
+            <label class="input-field-label" for="currentPassword">Current Password (required)</label>
+            <div class="password-wrapper">
+                <input type="password" class="cc-input" id="currentPassword" placeholder="Enter current password" autocomplete="current-password" style="border-color:#e94560">
+                <button type="button" class="password-toggle" onclick="togglePassword('currentPassword',this)">👁️</button>
+            </div>
+            <div class="cc-info-text"><span class="lock-icon">🔐</span> For your security, passwords are encrypted and cannot be displayed. Your browser may auto-fill it if saved.</div>
+        </div>
+        <div class="input-field-group">
+            <label class="input-field-label" for="newUsername">New Username (optional)</label>
+            <input type="text" class="cc-input" id="newUsername" placeholder="Enter new username" autocomplete="off">
+        </div>
+        <div class="input-field-group">
+            <label class="input-field-label" for="newPassword">New Password (optional)</label>
+            <div class="password-wrapper">
+                <input type="password" class="cc-input" id="newPassword" placeholder="Enter new password" autocomplete="new-password">
+                <button type="button" class="password-toggle" onclick="togglePassword('newPassword',this)">👁️</button>
+            </div>
+        </div>
+        <div class="cc-hint">💡 Current password is required to confirm changes.</div>
+        <div class="cc-buttons">
+            <button class="cc-btn cancel" onclick="closeChangeCredentials()">Cancel</button>
+            <button class="cc-btn update" onclick="updateAccount()">Update</button>
+        </div>
+    </div>
+</div>
+<div class="delete-warning-overlay" id="deleteWarningOverlay">
+    <div class="delete-warning-modal">
+        <div class="warn-icon">⚠️</div>
+        <div class="warn-title">Delete Account?</div>
+        <div class="warn-text">This will permanently erase your Private Library:</div>
+        <div class="warn-list"><span class="warn-item">⭐ My Ratings</span><span class="warn-item">📋 Watch Later</span></div>
+        <div class="warn-text" style="color:#ef4444;font-weight:600">This action cannot be undone.</div>
+        <div class="warn-buttons">
+            <button class="warn-btn cancel" onclick="closeDeleteWarning()">Cancel</button>
+            <button class="warn-btn confirm-delete" onclick="confirmDeleteAccount()">Yes, Delete</button>
+        </div>
+    </div>
+</div>
+<div class="trash-modal-overlay" id="trashModalOverlay">
+    <div class="trash-modal">
+        <div class="trash-modal-header"><h3>🗑️ Trash Bin <span class="trash-count" id="trashModalCount">0</span></h3><button class="trash-modal-close" onclick="closeTrashModal()">✕</button></div>
+        <div class="trash-modal-body" id="trashModalBody"><div class="trash-modal-empty">Trash is empty</div></div>
+        <div class="trash-modal-footer" id="trashModalFooter" style="display:none"><button class="empty-all-btn" onclick="emptyTrash()">🗑️ Empty Trash</button></div>
+    </div>
+</div>
+<header class="header-grid">
+<div class="animation-container" id="leftHeaderAnim"><div style="display:flex;flex-direction:column;align-items:center"><div class="text-group accent-color" id="to-group">To</div><div class="text-group" id="r-group">Rated</div><div class="text-group accent-color" id="mo-group">Mo</div><div class="text-group" id="l-group">List</div></div><div class="slogan" id="slogan-text">The best, for the best cinema library</div><div class="static-text">Tomo .com</div></div>
+<div class="yellow-container" id="yellowSquaresContainer"></div>
+<div class="red-container" id="redContainer"><div class="marquee-container"><span class="marquee-content" id="marqueeTextContent"></span></div></div>
+<div class="dropdown" id="dropdownContent"><button class="close-menu-btn" id="closeMenuBtn">✕</button></div>
+</header>
+<div class="image-modal-overlay" id="imageModalOverlay">
+<button class="zoom-close-btn" id="btnCloseSquaresZoom" title="Close">✕</button>
+<div class="modal-content-wrapper" id="modalContentWrapper"><span class="squares-zoom-counter" id="squaresZoomCounter">1/168</span><div class="image-modal-content-inner"><div id="prevArrow" class="modal-arrow" style="left:-70px"><svg width="24" height="24" fill="#fff" viewBox="0 0 24 24"><path d="M15.41 16.59L10.83 12l4.58-4.59L14 6l-6 6 6 6z"/></svg></div><img id="modalImageContent" src="" style="display:none"><div id="modalTextContent" style="display:none"></div><div id="nextArrow" class="modal-arrow" style="right:-70px"><svg width="24" height="24" fill="#fff" viewBox="0 0 24 24"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6z"/></svg></div></div></div>
+</div>
+<div class="main-layout max-w-screen-2xl mx-auto">
+<aside class="sidebar">
+<div class="sticky-sidebar-search">
+  <div class="sidebar-icon-zone">
+    <div class="icon-row icon-row-left">
+      <div class="home-row" onclick="goHome()">
+        <svg class="home-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path fill="#000" d="M12 3 2 12h3v8h6v-6h2v6h6v-8h3z"/></svg>
+        <span class="home-text">Home</span>
+      </div>
+    </div>
+    <div class="icon-row icon-row-right">
+      <div class="trash-icon-btn" id="trashIconBtn" onclick="toggleOptionsDropdown(event)" title="Options">
+        <div class="three-dots"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+        <span class="trash-badge hidden" id="trashIconBadge">0</span>
+      </div>
+    </div>
+  </div>
+  <div class="search-wrapper"><span class="search-icon-wrapper"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="width:20px;height:20px;color:#3b82f6;pointer-events:none"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg></span><input type="text" placeholder="search movies" id="searchInput" autocomplete="off"><div class="search-suggestions" id="searchSuggestions"></div></div>
+</div>
+<div class="mypage-tomo-box" id="mypageBox" onclick="openMyPage()"><div><div class="mypage-tomo-line1">My page</div><div class="mypage-tomo-line2">(Private Library)</div><div class="mypage-tomo-option">⭐ My Ratings.</div><div class="mypage-tomo-option">📋 Watch Later</div></div></div>
+<div class="sidebar-content" id="categoriesContainer"></div>
+</aside>
+<main class="main-content">
+<div id="floatingHeader" class="floating-header"><div style="width:30px;height:55px;margin-left:-4px" id="floatingStatueIcon"></div><div><h2>THE ACADEMY AWARDS</h2><p id="floatingHeaderSub">Best Picture Winners & Nominees <span class="archive-tag">ARCHIVE</span></p><p class="years-range">2000 — 2025</p></div><button id="floatingCloseBtn" class="floating-close-btn" onclick="event.stopPropagation();closeModal()">✕</button></div>
+<div id="tomoFloatingHeader" class="floating-header mypage"><div style="width:30px;height:55px;margin-left:-4px"></div><div class="tomo-header-content"><div class="mypage-title">My page</div><div class="mypage-subtitle">(Tomo)</div><div class="mypage-curated">My Curated Library</div><div class="mypage-links"><span class="left">My Rat.<div class="spearhead-down"></div></span><span class="right">Watch Later<div class="spearhead-down"></div></span></div></div><button class="floating-close-btn" onclick="event.stopPropagation();closeTomoPage()">✕</button></div>
+<div class="color-nav" id="color-nav-container"></div>
+<div class="main-inner-content"><div class="content-wrapper" id="movie-list-container"></div></div>
+<div class="modal-overlay" id="bestPictureModal"><div class="modal-content picture"><div class="modal-body picture" id="modalMoviesListContainer"></div></div></div>
+<div class="modal-overlay" id="screenplayModal"><div class="modal-content screenplay"><div class="modal-body screenplay" id="screenplayMoviesListContainer"></div></div></div>
+<div class="modal-overlay" id="adaptedScreenplayModal"><div class="modal-content adapted"><div class="modal-body adapted" id="adaptedScreenplayMoviesListContainer"></div></div></div>
+<div class="modal-overlay" id="internationalModal"><div class="modal-content international"><div class="modal-body international" id="internationalMoviesListContainer"></div></div></div>
+<div class="modal-overlay" id="animatedFeatureModal"><div class="modal-content animated"><div class="modal-body animated" id="animatedFeatureMoviesListContainer"></div></div></div>
+<div class="modal-overlay" id="tomoPageModal"><div class="modal-content mypage"><div class="mypage-container" id="mypageMainContainer"><div class="mypage-column mypage-column-left" id="mypageRatingsCol"><div class="mypage-empty-state" id="ratingsEmpty">No ratings yet</div><div id="ratingsList" style="display:flex;flex-direction:column;"></div></div><div class="mypage-column mypage-column-right" id="mypageWatchLaterCol"><div class="mypage-empty-state" id="watchLaterEmpty">No movies yet</div><div id="watchLaterList" class="watchlater-list-container" style="display:flex;flex-direction:column;"></div></div></div></div></div>
+</main>
+</div>
+<div class="zoom-overlay-oscar" id="zoomOverlayOscar">
+<button class="zoom-close-btn" onclick="event.stopPropagation();closeOscarZoom()" title="Close">✕</button>
+<div class="zoom-arrow" style="left:30px" onclick="event.stopPropagation();navOscarZoom(-1)"><svg viewBox="0 0 24 24"><path d="M15.41 16.59L10.83 12l4.58-4.59L14 6l-6 6 6 6z"/></svg></div>
+<div style="position:relative;display:inline-block"><img class="zoomed-poster" id="zoomedImgOscar" src="" onclick="event.stopPropagation();closeOscarZoom()"><span class="zoom-counter" id="zoomCounterOscar">1/10</span></div>
+<div class="zoom-arrow" style="right:30px" onclick="event.stopPropagation();navOscarZoom(1)"><svg viewBox="0 0 24 24"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6z"/></svg></div>
+</div>
+<div class="rating-popup-overlay" id="ratingPopupOverlay">
+<div class="rating-popup" id="ratingPopup"><button class="rating-popup-close" id="ratingPopupClose" title="Close">✕</button><img class="rating-popup-poster" id="ratingPopupPoster" src="" alt="Movie Poster"><div class="rating-popup-title" id="ratingPopupTitle"></div><div class="rating-popup-year" id="ratingPopupYear"></div><div class="rating-popup-label">Your Rating</div><input type="number" class="rating-popup-input" id="ratingPopupInput" min="0.1" max="10" step="0.1" placeholder="/10"><button class="rating-popup-submit" id="ratingPopupSubmit">Done</button></div>
+</div>
+<div class="confirm-overlay" id="confirmOverlay">
+<div class="confirm-dialog"><div class="confirm-icon">🗑️</div><div class="confirm-title">Are you sure you want to delete?</div><div class="confirm-movie" id="confirmMovieName"></div><div class="confirm-buttons"><button class="confirm-btn cancel" onclick="closeConfirmDialog()">Cancel</button><button class="confirm-btn danger" id="confirmDeleteBtn">Yes, Delete</button></div></div>
+</div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
